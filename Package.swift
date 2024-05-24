@@ -31,14 +31,16 @@ let package = Package(
 		// Products define the executables and libraries a package produces, and make them visible to other packages.
 		.library(
 			name: "CSQLite",
-			targets: ["CSQLite"]),
+			targets: [
+				"CSQLite",
+				"CSQLiteExtensions",
+			]),
 	],
 	targets: [
 		// Targets are the basic building blocks of a package. A target can define a module or a test suite.
 		// Targets can depend on other targets in this package, and on products in packages this package depends on.
 		.target(
 			name: "CSQLite",
-			dependencies: [],
 			cSettings: [
 				// Compile-time options
 				// https://sqlite.org/compile.html#recommended_compile_time_options
@@ -72,13 +74,29 @@ let package = Package(
 				.define("SQLITE_ENABLE_SNAPSHOT", to: "1"),
 				.define("SQLITE_ENABLE_STMTVTAB", to: "1"),
 				.define("SQLITE_ENABLE_STAT4", to: "1"),
-				.define("SQLITE_CORE", to: "1")],
+				.define("SQLITE_CORE", to: "1")
+			],
 			linkerSettings: [
-				.linkedLibrary("m")
+				.linkedLibrary("m"),
+			]),
+		.target(
+			name: "CSQLiteExtensions",
+			dependencies: [
+				"CSQLite",
+			],
+			cSettings: [
+				.define("SQLITE_CORE", to: "1"),
 			]),
 		.testTarget(
 			name: "CSQLiteTests",
-			dependencies: ["CSQLite"])
-	],
+			dependencies: [
+				"CSQLite",
+			]),
+		.testTarget(
+			name: "CSQLiteExtensionsTests",
+			dependencies: [
+				"CSQLiteExtensions",
+			])
+    ],
 	cLanguageStandard: .gnu11
 )
