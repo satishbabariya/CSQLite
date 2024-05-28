@@ -343,3 +343,12 @@ int csqlite_sqlite3_cancel_auto_extension_uuid()
 {
 	return sqlite3_cancel_auto_extension(sqlite3_uuid_init);
 }
+
+void sqlite3_vec_init(void);
+int csqlite_sqlite3_auto_extension_vec() {
+  return sqlite3_auto_extension(sqlite3_vec_init);
+}
+
+int csqlite_sqlite3_cancel_auto_extension_vec() {
+  return sqlite3_cancel_auto_extension(sqlite3_vec_init);
+}

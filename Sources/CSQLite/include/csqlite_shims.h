@@ -166,3 +166,8 @@ int csqlite_sqlite3_cancel_auto_extension_sha3(void);
 int csqlite_sqlite3_auto_extension_uuid(void);
 /// Equivalent to `sqlite3_cancel_auto_extension(sqlite3_uuid_init)`
 int csqlite_sqlite3_cancel_auto_extension_uuid(void);
+
+/// Equivalent to `sqlite3_auto_extension(sqlite3_vector_init)`
+int csqlite_sqlite3_auto_extension_vec(void);
+/// Equivalent to `sqlite3_cancel_auto_extension(sqlite3_vector_init)`
+int csqlite_sqlite3_cancel_auto_extension_vec(void);
