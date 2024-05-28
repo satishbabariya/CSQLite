@@ -1,1 +1,0 @@
-extensions/sqlite-vec/sqlite-vec.c
