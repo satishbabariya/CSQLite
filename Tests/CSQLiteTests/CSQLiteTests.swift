@@ -211,4 +211,53 @@ final class CSQLiteTests: XCTestCase {
 		XCTAssert(sqlite3_finalize(stmt) == SQLITE_OK)
 		XCTAssert(sqlite3_close(db) == SQLITE_OK)
 	}
+
+	func testVectorExtension() {
+        let items: [(sqlite3_int64, [Float])] = [
+            (1, [0.1, 0.1, 0.1, 0.1]),
+            (2, [0.2, 0.2, 0.2, 0.2]),
+            (3, [0.3, 0.3, 0.3, 0.3]),
+            (4, [0.4, 0.4, 0.4, 0.4]),
+            (5, [0.5, 0.5, 0.5, 0.5])
+        ]
+        let query: [Float] = [0.3, 0.3, 0.3, 0.3]
+        
+        XCTAssert(csqlite_sqlite3_auto_extension_vec() == SQLITE_OK)
+        
+        var db: OpaquePointer?
+        XCTAssert(sqlite3_open_v2(":memory:", &db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nil) == SQLITE_OK)
+        
+        var stmt: OpaquePointer?
+        XCTAssert(sqlite3_prepare_v2(db, "CREATE VIRTUAL TABLE vec_items USING vec0(embedding float[4])", -1, &stmt, nil)  == SQLITE_OK)
+        XCTAssert(sqlite3_step(stmt) == SQLITE_DONE)
+        XCTAssert(sqlite3_finalize(stmt) == SQLITE_OK)
+        
+        XCTAssert(sqlite3_exec(db, "BEGIN", nil, nil, nil) == SQLITE_OK)
+        XCTAssert(sqlite3_prepare_v2(db, "INSERT INTO vec_items(rowid, embedding) VALUES (?, ?)", -1, &stmt, nil) == SQLITE_OK)
+        
+        for item in items {
+            let id = item.0
+            let vector = item.1
+            sqlite3_bind_int64(stmt, 1, id)
+            sqlite3_bind_blob(stmt, 2, vector, Int32(vector.count * MemoryLayout<Float>.size), nil)
+            XCTAssert(sqlite3_step(stmt) == SQLITE_DONE)
+            sqlite3_reset(stmt)
+        }
+        XCTAssert(sqlite3_finalize(stmt) == SQLITE_OK)
+        XCTAssert(sqlite3_exec(db, "COMMIT", nil, nil, nil) == SQLITE_OK)
+        
+        XCTAssert(sqlite3_prepare_v2(db, "SELECT rowid, distance FROM vec_items WHERE embedding MATCH ?1 ORDER BY distance LIMIT 3 ", -1, &stmt, nil) == SQLITE_OK)
+        sqlite3_bind_blob(stmt, 1, query, Int32(query.count * MemoryLayout<Float>.size), nil)
+        
+        while true {
+            let rc = sqlite3_step(stmt)
+            if rc == SQLITE_DONE { break }
+            XCTAssert(rc == SQLITE_ROW)
+            let rowid = sqlite3_column_int64(stmt, 0)
+            let distance = sqlite3_column_double(stmt, 1)
+            print("rowid=\(rowid) distance=\(distance)")
+        }
+        XCTAssert(sqlite3_finalize(stmt) == SQLITE_OK)
+        XCTAssert(sqlite3_close(db) == SQLITE_OK)
+	}
 }
